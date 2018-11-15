@@ -1,3 +1,10 @@
+<!-- default file list -->
+*Files to look at*:
+
+* [MainWindow.xaml](./CS/Q357154/MainWindow.xaml) (VB: [MainWindow.xaml](./VB/Q357154/MainWindow.xaml))
+* [MainWindow.xaml.cs](./CS/Q357154/MainWindow.xaml.cs) (VB: [MainWindow.xaml](./VB/Q357154/MainWindow.xaml))
+* [PanelAnimationTemplates.xaml](./CS/Q357154/PanelAnimationTemplates.xaml) (VB: [PanelAnimationTemplates.xaml](./VB/Q357154/PanelAnimationTemplates.xaml))
+<!-- default file list end -->
 # How to animate a layout panel by its width/height
 
 
