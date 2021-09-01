@@ -1,5 +1,4 @@
-﻿Imports Microsoft.VisualBasic
-Imports System
+﻿Imports System
 Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Text
@@ -21,6 +20,7 @@ Namespace Q357154
 	''' </summary>
 	Partial Public Class MainWindow
 		Inherits Window
+
 		Public Sub New()
 			InitializeComponent()
 			AddHandler dockManager.Loaded, AddressOf dockManager_Loaded
@@ -36,7 +36,7 @@ Namespace Q357154
 				Return
 			End If
 			For Each item As BaseLayoutItem In dockManager.GetItems()
-				If item Is dockManager.LayoutRoot Then
+				If item = dockManager.LayoutRoot Then
 					Continue For
 				End If
 				Animate(item)
@@ -53,42 +53,45 @@ Namespace Q357154
 		Private Sub BeginAnimationToFixedValue(ByVal layoutItem As BaseLayoutItem, ByVal l As GridLength, ByVal prop As DependencyProperty)
 
 			Dim a As GridLengthAnimation = CreateAnimation(layoutItem, prop, l)
-			AddHandler a.Completed, Function(s, e) AnonymousMethod1(s, e, layoutItem, prop, a)
+			AddHandler a.Completed, Sub(s, e)
+				layoutItem.SetValue(prop, a.To)
+			End Sub
 			layoutItem.BeginAnimation(prop, a)
 		End Sub
-		
-		Private Function AnonymousMethod1(ByVal s As Object, ByVal e As Object, ByVal layoutItem As BaseLayoutItem, ByVal prop As DependencyProperty, ByVal a As GridLengthAnimation) As Boolean
-			layoutItem.SetValue(prop, a.To)
-			Return True
-		End Function
 		Private Function CreateAnimation(ByVal item As BaseLayoutItem, ByVal [property] As DependencyProperty, ByVal value As GridLength) As GridLengthAnimation
 			Dim [to] As New GridLength(0, GridUnitType.Star)
 
 			If maximizedItem IsNot Nothing Then
-				If maximizedItem Is item OrElse maximizedItem.Parent Is item Then
+				If maximizedItem = item OrElse maximizedItem.Parent = item Then
 					[to] = value
 				End If
 			Else
 				[to] = value
 			End If
-			Dim a As GridLengthAnimation = New GridLengthAnimation With {.From = CType(item.GetValue([property]), GridLength), .To = [to], .Duration = New TimeSpan(0, 0, 0, 0, 500), .FillBehavior = System.Windows.Media.Animation.FillBehavior.Stop}
+			Dim a As New GridLengthAnimation With {
+				.From = CType(item.GetValue([property]), GridLength),
+				.To = [to],
+				.Duration = New TimeSpan(0, 0, 0, 0, 500),
+				.FillBehavior = System.Windows.Media.Animation.FillBehavior.Stop
+			}
 			Return a
 		End Function
 		Private Sub OnPanelContentControlBackButtonClicked(ByVal sender As Object, ByVal e As EventArgs)
 			maximizedItem = Nothing
 			DoAnimation()
-			CType(sender, PanelContentControl).IsExpanded = False
+			DirectCast(sender, PanelContentControl).IsExpanded = False
 		End Sub
 		Private Sub OnPanelContentControlMouseLeftButtonDown(ByVal sender As Object, ByVal e As MouseButtonEventArgs)
 			maximizedItem = DockLayoutManager.GetLayoutItem(TryCast(sender, DependencyObject))
 			DoAnimation()
-			CType(sender, PanelContentControl).IsExpanded = True
+			DirectCast(sender, PanelContentControl).IsExpanded = True
 		End Sub
 	End Class
 
 
 	Public Class PanelContentControl
 		Inherits ContentControl
+
 		#Region "static"
 		Public Shared ReadOnly IndexNameProperty As DependencyProperty
 		Public Shared ReadOnly CurrentChangeProperty As DependencyProperty
@@ -103,8 +106,9 @@ Namespace Q357154
 			IsExpandedProperty = DependencyProperty.Register("IsExpanded", GetType(Boolean), GetType(PanelContentControl), New PropertyMetadata(False, AddressOf OnIsExpandedChanged))
 		End Sub
 		Private Shared Sub OnCurrentChangeChanged(ByVal d As DependencyObject, ByVal e As DependencyPropertyChangedEventArgs)
-			Dim panelContentControl As PanelContentControl = CType(d, PanelContentControl)
-			panelContentControl.IsChangePositive = If(CDbl(e.NewValue) = 0, Nothing, CType(CDbl(e.NewValue) > 0, Boolean?))
+'INSTANT VB NOTE: The variable panelContentControl was renamed since it may cause conflicts with calls to static members of the user-defined type with this name:
+			Dim panelContentControl_Conflict As PanelContentControl = CType(d, PanelContentControl)
+			panelContentControl_Conflict.IsChangePositive = If(CDbl(e.NewValue) = 0, Nothing, CType(CDbl(e.NewValue) > 0, Boolean?))
 		End Sub
 		Private Shared Sub OnIsChangePositiveChanged(ByVal d As DependencyObject, ByVal e As DependencyPropertyChangedEventArgs)
 			CType(d, PanelContentControl).UpdateVisualState()
@@ -116,8 +120,8 @@ Namespace Q357154
 		Public Sub New()
 			DefaultStyleKey = GetType(PanelContentControl)
 			Background = Brushes.Transparent
-			AddHandler Unloaded, AddressOf PanelContentControl_Unloaded
-			AddHandler SizeChanged, AddressOf PanelContentControl_SizeChanged
+			AddHandler Me.Unloaded, AddressOf PanelContentControl_Unloaded
+			AddHandler Me.SizeChanged, AddressOf PanelContentControl_SizeChanged
 			Cursor = Cursors.Hand
 		End Sub
 		Private Sub PanelContentControl_Unloaded(ByVal sender As Object, ByVal e As RoutedEventArgs)
@@ -161,10 +165,10 @@ Namespace Q357154
 			If IsChangePositive Is Nothing Then
 				VisualStateManager.GoToState(Me, "Zero", False)
 			End If
-			If IsChangePositive = True Then
+			If IsChangePositive.Equals(True) Then
 				VisualStateManager.GoToState(Me, "Positive", False)
 			End If
-			If IsChangePositive = False Then
+			If IsChangePositive.Equals(False) Then
 				VisualStateManager.GoToState(Me, "Negative", False)
 			End If
 			If IsExpanded Then
@@ -182,7 +186,7 @@ Namespace Q357154
 		End Sub
 		Public Property IndexName() As String
 			Get
-				Return CStr(GetValue(IndexNameProperty))
+				Return DirectCast(GetValue(IndexNameProperty), String)
 			End Get
 			Set(ByVal value As String)
 				SetValue(IndexNameProperty, value)
@@ -190,7 +194,7 @@ Namespace Q357154
 		End Property
 		Public Property CurrentChange() As Double
 			Get
-				Return CDbl(GetValue(CurrentChangeProperty))
+				Return DirectCast(GetValue(CurrentChangeProperty), Double)
 			End Get
 			Set(ByVal value As Double)
 				SetValue(CurrentChangeProperty, value)
@@ -198,7 +202,7 @@ Namespace Q357154
 		End Property
 		Public Property CurrentValue() As Double
 			Get
-				Return CDbl(GetValue(CurrentValueProperty))
+				Return DirectCast(GetValue(CurrentValueProperty), Double)
 			End Get
 			Set(ByVal value As Double)
 				SetValue(CurrentValueProperty, value)
@@ -206,7 +210,7 @@ Namespace Q357154
 		End Property
 		Public Property IsChangePositive() As Boolean?
 			Get
-				Return CType(GetValue(IsChangePositiveProperty), Boolean?)
+				Return DirectCast(GetValue(IsChangePositiveProperty), Boolean?)
 			End Get
 			Set(ByVal value? As Boolean)
 				SetValue(IsChangePositiveProperty, value)
@@ -214,7 +218,7 @@ Namespace Q357154
 		End Property
 		Public Property IsExpanded() As Boolean
 			Get
-				Return CBool(GetValue(IsExpandedProperty))
+				Return DirectCast(GetValue(IsExpandedProperty), Boolean)
 			End Get
 			Set(ByVal value As Boolean)
 				SetValue(IsExpandedProperty, value)
